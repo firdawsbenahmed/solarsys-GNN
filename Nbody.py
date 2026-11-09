@@ -34,3 +34,13 @@ def acceleration(pos , mass , eps):
        acc[i] = total_force / mass[i]
 
    return acc , F
+
+def leapfrog(pos , vel, mass , dt , eps): ## the pur of this func move the whole system forward by one time step which will update the vel and the F 
+   ### dt is the length of one full time step 
+   acc , _ = acceleration(pos , mass, eps) 
+   vel_half = vel + 0.5 * dt * acc ## the rule is vel_half = old vel + acc * time ,,, in this case the time = 0.5* dt 
+   pos = pos + dt * vel_half
+   acc , F = acceleration(pos , mass , eps)
+   vel = vel_half + 0.5 * vel * acc 
+
+   return pos , vel , F 

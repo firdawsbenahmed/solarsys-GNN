@@ -44,3 +44,21 @@ def leapfrog(pos , vel, mass , dt , eps): ## the pur of this func move the whole
    vel = vel_half + 0.5 * vel * acc 
 
    return pos , vel , F 
+
+#####  important note in rl the total energy of the system = kinetic energy + potential energy is an constant value which means it never changees in the simulator we will be using the result 
+### the result of theis func as a health check if the number drifts the integrator is inventing or destroying energy
+def energy (pos , vel , mass ,eps ) : 
+   N = len(mass)
+
+   kinetic = 0.0 ### the kinetic is an energy that and object has due to its motion 
+   for i in range(N) :
+      speed_square = vel[i][0]**2 + vel[i][0]**2  ## total speed of a vector 
+      kinetic += 0.5 * mass[i] * speed_square
+   potential = 0.0 
+   for i in range(N) : ## chosing the 1st body of the pair to start with
+      for j in range(i+1 , N): ## the 2nd body is the bodies that came after i ofcrs this will ensure this and also avoid the case where i = j ofcs 
+          arrow = pos[j] - pos[i] 
+          distance = np.sqrt(arrow[0]**2+ arrow[1]**2 + arrow[2]**2 + eps**2)
+          potential -= G * mass[i] * mass[j] / distance 
+   return kinetic + potential
+

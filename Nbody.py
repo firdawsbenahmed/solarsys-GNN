@@ -62,3 +62,20 @@ def energy (pos , vel , mass ,eps ) :
           potential -= G * mass[i] * mass[j] / distance 
    return kinetic + potential
 
+def make_sys(rng , n_planet , star_mass = 1.0 , r_range =(0.5 , 3.0), mass_range=(1e-4 , 1e-2), noise = 0.02): 
+   
+   n = n_planet+1 ## +1 is for the sun
+   mass = np.zeros(n) ## empty numpy array that has n numbers
+   pos = np.zeros((n , 2)) ## n lines so each planet object has its row and the 2 is for the (x,y)
+   vel = np.zeros((n , 2)) ## same 
+
+   mass[0] = star_mass ## it is putting the origin at the sun
+   log_of_mass = rng.uniform(np.log(mass_range[0]), np.log(mass_range[1] ), n_planet)
+   ## Picking directly would make most planets heavy, while picking in log space gives light and heavy planets in equal proportion
+   r = rng.uniform(*r_range , n_planet) ### one random distance from the star per planet between 0.5 and 3.0
+   theta = rng.uniform(0, 2 * np.pi, n_planet) ## one random angle per planet anywhere around a full circle 0 to 2π
+   wobble = rng.standard_normal(n_planet) ### one small random number per planet, used to make the orbit speed slightly off
+
+   for k in range(n_planet): 
+      body = k + 1 ## k= is the start which is the star so planet k is body k+1 
+      

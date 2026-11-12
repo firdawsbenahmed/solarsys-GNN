@@ -62,12 +62,12 @@ def energy (pos , vel , mass ,eps ) :
           potential -= G * mass[i] * mass[j] / distance 
    return kinetic + potential
 
-def make_sys(rng , n_planet , star_mass = 1.0 , r_range =(0.5 , 3.0), mass_range=(1e-4 , 1e-2), noise = 0.02): 
+def make_sys(rng , n_planet , star_mass = 1.0 , r_range =(0.5 , 3.0), mass_range=(1e-4 , 1e-2), noise = 0.02 , incl_max = 0.3 ): 
    
    n = n_planet+1 ## +1 is for the sun
    mass = np.zeros(n) ## empty numpy array that has n numbers
-   pos = np.zeros((n , 2)) ## n lines so each planet object has its row and the 2 is for the (x,y)
-   vel = np.zeros((n , 2)) ## same 
+   pos = np.zeros((n , 3)) ## n lines so each planet object has its row and the 2 is for the (x,y)
+   vel = np.zeros((n , 3)) ## same 
 
    mass[0] = star_mass ## it is putting the origin at the sun
    log_of_mass = rng.uniform(np.log(mass_range[0]), np.log(mass_range[1] ), n_planet)
@@ -75,7 +75,12 @@ def make_sys(rng , n_planet , star_mass = 1.0 , r_range =(0.5 , 3.0), mass_range
    r = rng.uniform(*r_range , n_planet) ### one random distance from the star per planet between 0.5 and 3.0
    theta = rng.uniform(0, 2 * np.pi, n_planet) ## one random angle per planet anywhere around a full circle 0 to 2π
    wobble = rng.standard_normal(n_planet) ### one small random number per planet, used to make the orbit speed slightly off
-
+   tilt = rng.uniform( - incl_max , incl_max , n_planet)  ### tilt of each orbit out of the x-y plane this was a major changing for the 3D 
    for k in range(n_planet): 
       body = k + 1 ## k= is the start which is the star so planet k is body k+1 
-      
+      mass[body] = np.exp(log_of_mass[k])
+
+      ### 1st sstep on the nrml plane x y 
+      x , y = r[k] * np.cos(theta[k]), r[k]*np.sin(theta[k]) ## we use the random distance and the angle 
+      dx , dy = -np.sin(theta[k]) , np.cos(theta[k])  ## the direction of the movement ofcs it will be sideways to the line torward the star 
+      speed = np.sqrt(G * star_mass / r[k] * (1 + noise * wobble[k])) ### the 1st part of this equa is a low the 2nd part that has the noise i added it so it changes the 1st part by 2% so the orbit don't be like a perfect circle cz this isn't reality 

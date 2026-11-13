@@ -1,6 +1,7 @@
 
 import numpy as np 
 
+### i like commenting my work every line so the any usr later find it easy to understnd and modify <3
 G = 1 
 
 def force(pos , mass , eps) : 
@@ -84,3 +85,54 @@ def make_sys(rng , n_planet , star_mass = 1.0 , r_range =(0.5 , 3.0), mass_range
       x , y = r[k] * np.cos(theta[k]), r[k]*np.sin(theta[k]) ## we use the random distance and the angle 
       dx , dy = -np.sin(theta[k]) , np.cos(theta[k])  ## the direction of the movement ofcs it will be sideways to the line torward the star 
       speed = np.sqrt(G * star_mass / r[k] * (1 + noise * wobble[k])) ### the 1st part of this equa is a low the 2nd part that has the noise i added it so it changes the 1st part by 2% so the orbit don't be like a perfect circle cz this isn't reality 
+
+      ### the tilt HELLA IMPORTANT  so now we be tilting the plane work around the x axis logically here a part of the y will turn into z 
+      c , s = np.cos(tilt[k]), np.sin(tilt[k])
+      pos[body] = [x , y*c , y*s] ## we are rotating around the x x wont change 
+      vel[body] = speed * np.array([dx, dy * c , dy * s])
+
+   total_momentum = np.zeros(3) ## for the whole system 
+   for b in range(n) : 
+      total_momentum += mass[b] * vel[b]
+   drift = total_momentum / mass.sum() ### the get at which speed the sys is drifting 
+   for b in range(n) : 
+      vel[b] -= drift ### hna the substruction was so the whole system stands still 
+        ### more details look since the sun started at 0,0 and the whole planets are movind so the sys has some momument and this sys will be drifting to one direction 
+        ### to prevent from this drift we substract the avg drift vel from every body INCLUDING THE STAR now the star gets small vel in the ops direction to the plnts's combined momentum this is why the star wibbles lil bit btw this is true irl 
+   return pos , vel , mass 
+
+def simulate(pos , vel , mass , n_steps , dt=0.01 ,eps = 0.05 , save_every=1): 
+   
+   ### we need lists to collect snapshotss for the vel and pos and the force sizes
+   P , V ,FM = [pos.copy(), vel.copy()] , [np.linalg.norm(force(pos , mass, eps),  axis=-1 )] #### turns each arrow into its length
+
+   for s in range(1 , n_steps+1) : 
+      pos , vel , F  = leapfrog(pos , vel , mass , dt , eps) ### F is the force table at the new positions
+      if s % save_every == 0 : 
+         P.append(pos.copy()); V.append(vel.copy()) ; FM.append(np.linalg.norm(F, axis=-1))
+   return np.array(P) , np.array(V) , np.array(FM)
+
+def generate_database(n_traj , n_planets , n_steps , dt , eps , save_every , seed , **sys_kw) : 
+   #### n_traj is nb of trajectories and the steps per trajectory , step length and a seed the others are clear 
+   ### **sys_kw is for any optional extras 
+
+   rng = np.random.default_rng(seed)
+   #### this makes a rndm nb generator and once the seed fixes the whole ds so the same seed always gives the same data
+
+   Ps , Vs , Ms , FMs = [] , [] , [] , []
+
+   ### empty list to collect the results of each trajectory pos , vels . mass , force size
+
+   for _ in range(n_traj) : 
+
+      pos , vel , mass = make_sys(rng , n_planets , **sys_kw)
+
+      #### this creates a new random starting system star + planets and random properties like evertime it gives a diff sys but the whole seqnc is kinda repeatable from the seed 
+
+      P , V , FM = simulate(pos , vel ,mass , n_steps , dt , eps , save_every)
+
+      #### this runs that system forward in time and gets back its snapshots
+
+      Ps.append(P) ; Vs.append(V) ; Ms.append(mass) ; FMs.append(FM)
+        ## and this adds this trajectory’s results to the four lists
+   return dict(pos = np.array(Ps) , vel = np.array(Vs) , mass = np.array(Ms) , force_mag = np.array(FMs) , dt = dt * save_every , eps = eps) ### This stacks each list into one array and returns everything in a dictionary

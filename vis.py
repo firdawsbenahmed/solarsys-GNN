@@ -65,3 +65,12 @@ trails = [ax.plot([], [], [], color=colors[b], lw=1.0, alpha=0.7)[0] for b in ra
 ###creates one empty line per body to be filled in frame by frame ax.plot returns list of lines and 0 takes the first one
 label = ax.text2D(0.03, 0.95, "", transform=ax.transAxes) ###text label for the time
 
+def update(t): ### is called once per frame
+    scat._offsets3d = (P[t, :, 0], P[t, :, 1], P[t, :, 2]) ### move all the dots to their positions at time t
+    lo = max(0, t - a.trail) ### starting of the tail and the last a.trail frames 60 by default
+    for b, line in enumerate(trails):
+        ### for each body the trail is drawn through its positions from frame lo up to and including frame t
+        line.set_data(P[lo:t + 1, b, 0], P[lo:t + 1, b, 1]) ### adding x and y
+        line.set_3d_properties(P[lo:t + 1, b, 2]) ### adding the z 
+    label.set_text(f"t = {t * a.dt * a.save_every:.1f}") ### updates the clock with the real simulated time and t is the frame nb * the time btwn the snapshots
+    return [scat, label, *trails] ### returns all the things that has changed 

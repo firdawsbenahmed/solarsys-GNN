@@ -43,3 +43,25 @@ def make_axes(figsize=(7, 7)):
     ax.set_xlabel("x"); ax.set_ylabel("y"); ax.set_zlabel("z")
     ax.view_init(elev=25, azim=40) ### 25 above the horizontal plane turned 40 around
     return fig, ax
+ ### full orbits pic
+fig, ax = make_axes()
+for b in range(N):
+    ##### fresh plot then goes through the bodies one by one
+    ax.plot(P[:, b, 0], P[:, b, 1], P[:, b, 2], color=colors[b], lw=0.8, alpha=0.8) ### here we drow the path of the body b where the x coord of the body at every time is drawn written as a loop
+    ### the three lists are the whole route through space the line with is 0.8 making it lil bit transp
+    ax.scatter(*P[-1, b], color=colors[b], s=sizes[b], depthshade=False)
+    ### this draws a dot at the body’s final position its lastest coords * works as a separator s is the dot size 
+    #### depthshade=False stops matplotlib from fading the color with distance
+ax.set_title("Orbits (full trajectories)")
+fig.savefig(a.png, dpi=150, bbox_inches="tight")
+print("saved", a.png) ## saving the pic 
+
+###animation
+fig, ax = make_axes()
+## new figure with one dot per body at its time 0 position
+scat = ax.scatter(P[0, :, 0], P[0, :, 1], P[0, :, 2], c=colors, s=sizes, depthshade=False)
+####### we keep the name scat so we can move the dots later
+trails = [ax.plot([], [], [], color=colors[b], lw=1.0, alpha=0.7)[0] for b in range(N)]
+###creates one empty line per body to be filled in frame by frame ax.plot returns list of lines and 0 takes the first one
+label = ax.text2D(0.03, 0.95, "", transform=ax.transAxes) ###text label for the time
+

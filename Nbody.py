@@ -141,9 +141,12 @@ def generate_database(n_traj , n_planets , n_steps , dt , eps , save_every , see
 
 
 if __name__ == "__main__" : 
-   ap = argparse.ArgumentParser()
-   ap.add_argument("--check" , action="store_true" , help="run energy-conversation check and exist")
-   ap.add_argument("--n_traj" , type=int , default=500)
+   ap = argparse.ArgumentParser() ####this creates the option reader our menu 
+   ap.add_argument("--check" , action="store_true" , help="run energy-conversation check and exist") 
+   ### This option is a switch not a value. If you type --check it becomes True and if you dont it stays False
+   ### python Nbody.py --check runs the energy test the switch is on
+   ####python Nbody.py generates the dataset the switch is off
+   ap.add_argument("--n_traj" , type=int , default=500)### each of these lines adds one option to the menu and these nb or info are needed in the functioning later 
    ap.add_argument("--n_planets" , type=int , default=4)
    ap.add_argument("--n_steps" , type=int , default=2000)
    ap.add_argument("--dt" , type=float , default=0.005)
@@ -151,18 +154,18 @@ if __name__ == "__main__" :
    ap.add_argument("--save_every" , type=int , default=5)
    ap.add_argument("--seed", type=int, default=0)
    ap.add_argument("--out",  default="nbody_train.npz")
-   a = ap.parse_args()
+   a = ap.parse_args() ### reads the given data and store it in a
 
    if a.check: 
       rng = np.random.default_rng(a.seed)
       pos , vel , mass = make_sys(rng , a.n_planets)
-      e0 = energy(pos , vel , mass , a.eps)
+      e0 = energy(pos , vel , mass , a.eps) ### it stores the total energy at the very start
       P , V , _ = simulate(pos , vel , mass , a.n_steps , a.dt , a.eps )
-      e1 = energy(P[-1] , V[-1] , mass , a.eps)
+      e1 = energy(P[-1] , V[-1] , mass , a.eps) ## -1 means the last time and e1 is the energy at the end
       print(f"E0={e0:.6f}  E_end={e1:.6f}  rel drift={abs((e1 - e0) / e0):.2e}")
    else : 
       d = generate_database(a.n_traj , a.n_planets , a.n_steps , a.dt , a.eps , a.save_every , a.seed)
-      np.savez_compressed(a.out , **d)
+      np.savez_compressed(a.out , **d) ### it saves the dictionary to a file called a.out the **d unpacks the dictionary so each entry (pos, vel, mass, force_mag, ...) is stored as its own named array in the file
       print(f"saved {a.out}: pos {d['pos'].shape}, force_mag {d['force_mag'].shape}")
 
     

@@ -1,4 +1,5 @@
 
+import argparse
 import numpy as np 
 
 ### i like commenting my work every line so the any usr later find it easy to understnd and modify <3
@@ -7,7 +8,7 @@ G = 1
 def force(pos , mass , eps) : 
     N = len(mass) ### the number of the bodies 
 
-    F = np.zeros((N , N , 2 ))## this an empty table n lines and n colm + each row has a cell of (x,y)
+    F = np.zeros((N , N , 3 ))## this an empty table n lines and n colm + each row has a cell of (x,y)
 
     for i in range(N) : ## i is the one that is being pulled 
        for j in range(N) : ## j is the one pulled to 
@@ -16,7 +17,7 @@ def force(pos , mass , eps) :
 
            d = pos[j] - pos[i] ## (- xj from xi and same for y )
 
-           r2 = d[0]**2 + d[1]**2 + eps**2 ## we added the eps to avoid 0 like safety stuff
+           r2 = d[0]**2 + d[1]**2 +  d[2]**2 + eps**2 ## we added the eps to avoid 0 like safety stuff
 
            r = np.sqrt(r2)  
 
@@ -26,10 +27,10 @@ def force(pos , mass , eps) :
 def acceleration(pos , mass , eps): 
    N = len(mass)
    F = force(pos , mass , eps)
-   acc = np.zeros(N , 2) ## NumPy array with just n rows and 2 colums and it has one (x, y) row per body 
+   acc = np.zeros((N,3)) ## NumPy array with just n rows and 2 colums and it has one (x, y) row per body 
 
    for i in range(N) : 
-       total_force = np.zeros(2) ## here it is a numpy array that has only 2 numbers to store the total force on i object xi and yi cz we have force on x and on y 
+       total_force = np.zeros(3) ## here it is a numpy array that has only 2 numbers to store the total force on i object xi and yi cz we have force on x and on y 
        for j in range(N): 
           total_force += F[i , j]
        acc[i] = total_force / mass[i]
@@ -42,7 +43,7 @@ def leapfrog(pos , vel, mass , dt , eps): ## the pur of this func move the whole
    vel_half = vel + 0.5 * dt * acc ## the rule is vel_half = old vel + acc * time ,,, in this case the time = 0.5* dt 
    pos = pos + dt * vel_half
    acc , F = acceleration(pos , mass , eps)
-   vel = vel_half + 0.5 * vel * acc 
+   vel = vel_half + 0.5 * dt * acc 
 
    return pos , vel , F 
 
@@ -53,7 +54,7 @@ def energy (pos , vel , mass ,eps ) :
 
    kinetic = 0.0 ### the kinetic is an energy that and object has due to its motion 
    for i in range(N) :
-      speed_square = vel[i][0]**2 + vel[i][0]**2  ## total speed of a vector 
+      speed_square = vel[i][0]**2 + vel[i][1]**2 + vel[i][2]**2  ## total speed of a vector 
       kinetic += 0.5 * mass[i] * speed_square
    potential = 0.0 
    for i in range(N) : ## chosing the 1st body of the pair to start with
@@ -104,7 +105,7 @@ def make_sys(rng , n_planet , star_mass = 1.0 , r_range =(0.5 , 3.0), mass_range
 def simulate(pos , vel , mass , n_steps , dt=0.01 ,eps = 0.05 , save_every=1): 
    
    ### we need lists to collect snapshotss for the vel and pos and the force sizes
-   P , V ,FM = [pos.copy(), vel.copy()] , [np.linalg.norm(force(pos , mass, eps),  axis=-1 )] #### turns each arrow into its length
+   P , V ,FM = [pos.copy()] , [ vel.copy()] , [np.linalg.norm(force(pos , mass, eps),  axis=-1 )] #### turns each arrow into its length
 
    for s in range(1 , n_steps+1) : 
       pos , vel , F  = leapfrog(pos , vel , mass , dt , eps) ### F is the force table at the new positions
@@ -136,3 +137,35 @@ def generate_database(n_traj , n_planets , n_steps , dt , eps , save_every , see
       Ps.append(P) ; Vs.append(V) ; Ms.append(mass) ; FMs.append(FM)
         ## and this adds this trajectory’s results to the four lists
    return dict(pos = np.array(Ps) , vel = np.array(Vs) , mass = np.array(Ms) , force_mag = np.array(FMs) , dt = dt * save_every , eps = eps) ### This stacks each list into one array and returns everything in a dictionary
+
+
+
+if __name__ == "__main__" : 
+   ap = argparse.ArgumentParser()
+   ap.add_argument("--check" , action="store_true" , help="run energy-conversation check and exist")
+   ap.add_argument("--n_traj" , type=int , default=500)
+   ap.add_argument("--n_planets" , type=int , default=4)
+   ap.add_argument("--n_steps" , type=int , default=2000)
+   ap.add_argument("--dt" , type=float , default=0.005)
+   ap.add_argument("--eps" , type=float , default=0.05)
+   ap.add_argument("--save_every" , type=int , default=5)
+   ap.add_argument("--seed", type=int, default=0)
+   ap.add_argument("--out",  default="nbody_train.npz")
+   a = ap.parse_args()
+
+   if a.check: 
+      rng = np.random.default_rng(a.seed)
+      pos , vel , mass = make_sys(rng , a.n_planets)
+      e0 = energy(pos , vel , mass , a.eps)
+      P , V , _ = simulate(pos , vel , mass , a.n_steps , a.dt , a.eps )
+      e1 = energy(P[-1] , V[-1] , mass , a.eps)
+      print(f"E0={e0:.6f}  E_end={e1:.6f}  rel drift={abs((e1 - e0) / e0):.2e}")
+   else : 
+      d = generate_database(a.n_traj , a.n_planets , a.n_steps , a.dt , a.eps , a.save_every , a.seed)
+      np.savez_compressed(a.out , **d)
+      print(f"saved {a.out}: pos {d['pos'].shape}, force_mag {d['force_mag'].shape}")
+
+    
+
+
+

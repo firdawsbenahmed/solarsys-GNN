@@ -29,3 +29,7 @@ P, V, _ = simulate(pos, vel, mass, a.n_steps, a.dt, a.eps, a.save_every)   # P: 
 T, N, _ = P.shape ### t= nb of screenshot n = nb of bodies _ for the coordonates 
 print(f"simulated {T} snapshots of {N} bodies")
 
+lim = 1.05 * np.abs(P).max() ### this finds the largest coordinate value anywhere in the data
+### and ignore the sign then it adds a margen for the axis ranges so all the orbits fit in the pic 
+colors = [to_rgba("gold")] + [plt.cm.tab10(k) for k in range(N - 1)] ### this makes one color per body the palatte is tab10 and the to_rgba turns the name into 4 numbers 
+sizes = [250] + [25 + 60 * (mass[k] / mass[1:].max()) for k in range(1, N)] ## this makes one dot size per body 250 for the star and each planet gets 25 plus up to 60 more depending on its mass compared with the heaviest planet

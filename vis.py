@@ -74,3 +74,14 @@ def update(t): ### is called once per frame
         line.set_3d_properties(P[lo:t + 1, b, 2]) ### adding the z 
     label.set_text(f"t = {t * a.dt * a.save_every:.1f}") ### updates the clock with the real simulated time and t is the frame nb * the time btwn the snapshots
     return [scat, label, *trails] ### returns all the things that has changed 
+
+anim = FuncAnimation(fig, update, frames=T, interval=33, blit=False)
+#### the set up of the animation and we call the update for every frame fro, 0 to t-1 33 is the delay btwn the time frames in ms the false means the frame is redrawn cmptly 
+anim.save(a.gif, writer=PillowWriter(fps=30), dpi=70)
+#### pillow lib is the one tht helps with of gif 30 per sec
+print("saved", a.gif)
+
+if a.show:
+    plt.show()
+
+    ### note use --show to have interractive view 

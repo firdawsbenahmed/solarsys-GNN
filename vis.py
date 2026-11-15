@@ -4,10 +4,8 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import to_rgba
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-try:
-    from Nbody import make_sys, simulate     
-except ImportError:
-    from Nbody import make_sys, simulate
+from Nbody import make_sys, simulate     
+
 
 ap = argparse.ArgumentParser()
 ap.add_argument("--n_planets", type=int, default=4)

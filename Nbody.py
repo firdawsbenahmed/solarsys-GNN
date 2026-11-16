@@ -146,7 +146,8 @@ if __name__ == "__main__" :
    ### This option is a switch not a value. If you type --check it becomes True and if you dont it stays False
    ### python Nbody.py --check runs the energy test the switch is on
    ####python Nbody.py generates the dataset the switch is off
-   ap.add_argument("--n_traj" , type=int , default=500)### each of these lines adds one option to the menu and these nb or info are needed in the functioning later 
+   ### each of these lines adds one option to the menu and these nb or info are needed in the functioning later 
+   ap.add_argument("--n_traj" , type=int , default=500)
    ap.add_argument("--n_planets" , type=int , default=4)
    ap.add_argument("--n_steps" , type=int , default=2000)
    ap.add_argument("--dt" , type=float , default=0.005)

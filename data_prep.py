@@ -27,3 +27,16 @@ for k in range(n_traj):
     if (k + 1 ) % 50 == 0 or k+1 == n_traj : 
         print(f"{k+1} / {n_traj} trajectories are done") ### a prog msg is sent after every 50 traj or at the end
 
+errors = [] ### empty list to collect the errors 
+
+for k in range(n_traj) : 
+    for t in range(T-1) : ## every pair of neighbouring moments so the loop stops one early at t-1
+        for b in range(1 , N) : ### every N body starting from 1 not 0 so only the planets are checked 
+            dv = vel[ k , t + 1 , b] - vel[k , t , b] ### we r using the neighboring pairs here we r counting the vel changes in between the t and t + 1
+            acc_avg = 0.5 * (acc[k , t , b] + acc[k , t+1 , b])
+            error = np.linalg.norm(dv / dt_save - acc_avg)
+            ##### dv / dt_saved is vel change per unit time sub the avg acc gives how far off the two are  and np.linalg.norm turns diff arrow into a length
+            errors.append(error / np.linalg.norm(acc_avg)) ### it divides by the size of the acceleration itself to get a relative error this is convention
+print(f"label check, median relative error (planets only): {np.median(errors):.1e}")
+### printing the middle value of all those errors 
+#### i used the median instead of the mean bcz a few rare close encounters could throw an avg off

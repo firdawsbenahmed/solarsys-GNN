@@ -19,4 +19,11 @@ n_traj , T , N , _ = pos.shape ### so here pos has the shape of (n_traj , T , N 
 
 acc = np.zeros((n_traj, T , N , 3))
 ###empty numpy array having same shape as the pos and it hols one acc arrow x, y, z for every body at every moment in ever traj 
+for k in range(n_traj):
+    for t in range(T):
+        #### in the both loops we r going through every traj in every saved moment 
+        acc_now , _ = acceleration(pos[k , t] ,  mass[k] , eps) ## to throw the forces away 
+        acc[k , t] = acc_now ### It stores the acc in the big table each moment gets the correct answer for its own positions
+    if (k + 1 ) % 50 == 0 or k+1 == n_traj : 
+        print(f"{k+1} / {n_traj} trajectories are done") ### a prog msg is sent after every 50 traj or at the end
 

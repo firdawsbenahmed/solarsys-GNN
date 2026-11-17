@@ -17,6 +17,7 @@ eps , dt_save = float(d["eps"]) , float(["dt"]) ### dt is the time between the s
 n_traj , T , N , _ = pos.shape ### so here pos has the shape of (n_traj , T , N , 3)
 ### these 4 sizes are : trjectories and moments in time and nb of bodies and lastly the 3 coordonates , no need for _ but it is used as a name for the 3 cz python reqires a name for every value so 
 
+### true acc of every body at every saved moment 
 acc = np.zeros((n_traj, T , N , 3))
 ###empty numpy array having same shape as the pos and it hols one acc arrow x, y, z for every body at every moment in ever traj 
 for k in range(n_traj):
@@ -27,6 +28,8 @@ for k in range(n_traj):
     if (k + 1 ) % 50 == 0 or k+1 == n_traj : 
         print(f"{k+1} / {n_traj} trajectories are done") ### a prog msg is sent after every 50 traj or at the end
 
+
+####   acc should explain how the vel changed between snapshots
 errors = [] ### empty list to collect the errors 
 
 for k in range(n_traj) : 
@@ -40,3 +43,23 @@ for k in range(n_traj) :
 print(f"label check, median relative error (planets only): {np.median(errors):.1e}")
 ### printing the middle value of all those errors 
 #### i used the median instead of the mean bcz a few rare close encounters could throw an avg off
+
+#### how big are the star vs planet
+star_size = []
+planet_size = []
+for k in range(n_traj) : 
+    for t in range(T): 
+        star_size.append(np.linalg.norm(acc[k , t, 0])) #### the star goes 1st means the size lngth of the star’s acc arrow
+        for b in range(1 , N) : 
+            planet_size.append(np.linalg.norm(acc[k , t , b])) ### then of all the planets’ arrows go in the 2nd
+print(f"typical |acceleration|:  star {np.median(star_size):.1e}   planets {np.median(planet_size):.1e}") #### the typed value of the star is 200 times smaller this is so important later for the training setup
+
+
+### save everything from the input file + the labels
+out = {}
+
+for name in d.files : #### d.files is the list of names stored in the input file it copies each of them in new dictionary
+    out[name] = d[name]
+out["acc"] = acc ### it adds the new labels under the name acc
+np.save_compressed(a.out , **out) ### save dictionary as compressed file + ** is here to unpacks it into separete arrays 
+print(f"saved {a.out}: acc {acc.shape}")
